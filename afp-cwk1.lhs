@@ -107,3 +107,13 @@ to win in the row
 > countSeqPlayerInRow player [] win = False
 > countSeqPlayerInRow player row win | head row == player = countSeqPlayerInRow player (tail row) (win-1)
 >                                    | otherwise = False
+
+
+
+> testBoard :: Board
+> testBoard = [[B,B,B,B,B,B,B],
+>             [B,B,B,B,B,B,B],
+>             [B,B,B,B,B,B,B],
+>             [B,B,B,X,X,B,B],
+>             [B,B,O,O,X,B,B],
+>             [B,O,O,X,X,X,O]]
