@@ -1,7 +1,7 @@
 G52AFP Coursework 1 - Connect Four Game
    
 Your full name(s):
-Minhao Li, Jou-yin Huang
+Minhao Li, Jou-Yin Huang
 
 Your full email address(es):
 scyml4@nottingham.ac.uk
@@ -83,3 +83,27 @@ The following functions together do the job of getting whose turn it is
 > turn b
 >   | countPlayer b firstPlayer > countPlayer b secondPlayer = secondPlayer
 >   | otherwise = firstPlayer
+
+
+The following functions check if the given player has got a sequence indicated 
+to win in the row
+
+> hasRow :: Player -> Row -> Bool
+> hasRow player [] = False
+> hasRow player row | head row == player = countSeqPlayerInRow player (tail row) (win-1) || hasRow player (tail row) 
+>                   | otherwise = hasRow player (tail row) 
+
+> testPlayers :: Row
+> testPlayers = [O, O, O, O, X, B]
+
+> testPlayers2 :: Row
+> testPlayers2 = [O, O, O, X, B, O, O, O, O]
+
+> testPlayers3 :: Row
+> testPlayers3 = [O, O, O, X, O, B, B]
+
+> countSeqPlayerInRow :: Player -> Row -> Int -> Bool
+> countSeqPlayerInRow player row 0 = True
+> countSeqPlayerInRow player [] win = False
+> countSeqPlayerInRow player row win | head row == player = countSeqPlayerInRow player (tail row) (win-1)
+>                                    | otherwise = False
