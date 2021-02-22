@@ -52,3 +52,34 @@ The following code displays a board on the screen:
 > showPlayer X = 'X'
 
 ----------------------------------------------------------------------
+
+The first player to go is pre-defined, so we can get the second player in turn
+
+> firstPlayer :: Player
+> firstPlayer = O
+>
+> secondPlayer :: Player
+> secondPlayer
+>   | firstPlayer == X = O
+>   | otherwise = X
+
+
+The following functions together do the job of getting whose turn it is
+
+> countPlayerInRow :: Row -> Player -> Int
+> countPlayerInRow [] _ = 0
+> countPlayerInRow (p: ps) player = (compare p player) + (countPlayerInRow ps p)
+>   where
+>       compare :: Player -> Player -> Int
+>       compare p1 p2
+>           | p1 == p2 = 1
+>           | otherwise = 0
+>
+> countPlayer :: Board -> Player -> Int
+> countPlayer [] _ = 0
+> countPlayer (ps: pss) p = (countPlayerInRow ps p) + (countPlayer pss p)
+>
+> turn :: Board -> Player
+> turn b
+>   | countPlayer b firstPlayer > countPlayer b secondPlayer = secondPlayer
+>   | otherwise = firstPlayer
