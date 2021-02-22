@@ -1,7 +1,11 @@
 G52AFP Coursework 1 - Connect Four Game
    
-Your full name(s)
-Your full email address(es)
+Your full name(s):
+Minhao Li, Jou-yin Huang
+
+Your full email address(es):
+scyml4@nottingham.ac.uk
+scyjh2@nottingham.ac.uk
 
 ----------------------------------------------------------------------
 
