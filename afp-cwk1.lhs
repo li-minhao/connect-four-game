@@ -12,6 +12,9 @@ scyjh2@nottingham.ac.uk
 We use some functions from the list library
 
 > import Data.List
+> import Data.Char
+> import System.IO
+> import Data.Char
 
 For flexibility, we define constants for the row and column size of the
 board, length of a winning sequence, and search depth for the game tree:
@@ -111,11 +114,11 @@ to win in the row
 
 > testBoard :: Board
 > testBoard = [[B,B,B,B,B,B,B],
->             [B,B,B,B,B,B,B],
->             [B,B,B,B,B,B,B],
->             [B,B,B,X,X,B,B],
->             [B,B,O,O,X,B,B],
->             [B,O,O,X,X,X,O]]
+>              [B,B,B,B,B,B,B],
+>              [B,B,B,B,B,B,B],
+>              [B,B,B,X,X,B,B],
+>              [B,B,O,O,X,B,B],
+>              [B,O,O,X,X,X,O]]
 
 The following functions intended to check if some player has won
 
@@ -166,3 +169,42 @@ The following functions add the give player to the board at the indicated column
 > removeHeads [] = []
 > removeHeads (x:xs) | x == [] = []
 >                    | otherwise = tail x : removeHeads xs
+
+
+
+The main functions of the game - to interact with the users and 
+run the game accordingly
+
+> initPlayer :: Player
+> initPlayer = O
+
+> initBoard :: Board
+> initBoard = replicate rows (replicate cols B)
+
+> secBoard :: Board
+> secBoard = [[B,B,B,B,B,B,B],
+>             [B,B,B,B,B,B,B],
+>             [B,B,B,B,B,B,B],
+>             [B,B,B,B,B,B,B],
+>             [B,B,B,B,B,B,B],
+>             [B,O,B,B,B,B,B]]
+
+> connectFour :: IO()
+> connectFour = play initBoard initPlayer
+
+> play :: Board -> Player -> IO()
+> play board player | hasWon O board = putStrLn "Player O has won!"
+>                   | hasWon X board = putStrLn "Player X has won!"
+>                   | otherwise = do showBoard board
+>                                    putStrLn ("\nPlayer " ++ show player ++ " enter your move:")
+>                                    colInput <- getInt       
+>                                    putStrLn (show player)           
+>                                    play (move player colInput board) (turn (move player colInput board))
+>                                       
+
+> getInt :: IO Int
+> getInt = do charInput <- getChar
+>             if (isDigit charInput) then 
+>                return (read [charInput])
+>             else 
+>                return 0
