@@ -139,3 +139,30 @@ The following functions intended to check if some player has won
 >
 > hasWon :: Player -> Board -> Bool
 > hasWon p b = any (hasRow p) (getRows b ++ getCols b ++ getDgnls b)
+
+The following functions add the give player to the board at the indicated column 
+
+> move :: Player -> Int -> Board -> Board
+> move player colNum board = myTranspose (addPlayerToBoard player colNum (myTranspose board))
+
+> addPlayerToBoard :: Player -> Int -> Board -> Board
+> addPlayerToBoard player colNum board = (take colNum board) ++ [reverse (addPlayerToRow player (reverse (board !! colNum)))] ++ (drop (colNum+1) board)
+
+> addPlayerToRow :: Player -> Row -> Row
+> addPlayerToRow player (x:xs) | x == B = (player:xs)
+>                              | otherwise = x : addPlayerToRow player xs
+
+> myTranspose :: Board -> [Row]
+> myTranspose [] = []
+> myTranspose board | head board == [] = []
+>                   | otherwise = heads board : myTranspose (removeHeads board)
+
+> heads :: Board -> Row 
+> heads [] = []
+> heads (x:xs) | x == [] = []
+>              | otherwise = head x : heads xs
+
+> removeHeads :: Board -> [Row]
+> removeHeads [] = []
+> removeHeads (x:xs) | x == [] = []
+>                    | otherwise = tail x : removeHeads xs
