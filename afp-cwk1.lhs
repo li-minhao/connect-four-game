@@ -112,8 +112,36 @@ to win in the row
 
 > testBoard :: Board
 > testBoard = [[B,B,B,B,B,B,B],
->             [B,B,B,B,B,B,B],
->             [B,B,B,B,B,B,B],
->             [B,B,B,X,X,B,B],
->             [B,B,O,O,X,B,B],
->             [B,O,O,X,X,X,O]]
+>              [B,B,B,B,B,B,B],
+>              [B,B,B,B,B,B,B],
+>              [B,B,B,X,X,B,B],
+>              [B,B,O,O,X,B,B],
+>              [B,O,O,X,X,X,O]]
+
+
+The following functions add the give player to the board at the indicated column 
+
+> move :: Player -> Int -> Board -> Board
+> move player colNum board = myTranspose (addPlayerToBoard player colNum (myTranspose board))
+
+> addPlayerToBoard :: Player -> Int -> Board -> Board
+> addPlayerToBoard player colNum board = (take colNum board) ++ [reverse (addPlayerToRow player (reverse (board !! colNum)))] ++ (drop (colNum+1) board)
+
+> addPlayerToRow :: Player -> Row -> Row
+> addPlayerToRow player (x:xs) | x == B = (player:xs)
+>                              | otherwise = x : addPlayerToRow player xs
+
+> myTranspose :: Board -> [Row]
+> myTranspose [] = []
+> myTranspose board | head board == [] = []
+>                   | otherwise = heads board : myTranspose (removeHeads board)
+
+> heads :: Board -> Row 
+> heads [] = []
+> heads (x:xs) | x == [] = []
+>              | otherwise = head x : heads xs
+
+> removeHeads :: Board -> [Row]
+> removeHeads [] = []
+> removeHeads (x:xs) | x == [] = []
+>                    | otherwise = tail x : removeHeads xs
