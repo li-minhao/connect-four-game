@@ -76,8 +76,8 @@ The following functions together do the job of getting whose turn it is
 > countPlayerInRow :: Row -> Player -> Int
 > countPlayerInRow [] _ = 0
 > countPlayerInRow (p: ps) player
->   | p == player = 1 + countPlayerInRow ps p
->   | otherwise = countPlayerInRow ps p
+>   | p == player = 1 + countPlayerInRow ps player
+>   | otherwise = countPlayerInRow ps player
 >
 > countPlayer :: Board -> Player -> Int
 > countPlayer [] _ = 0
