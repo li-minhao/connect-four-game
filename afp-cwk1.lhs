@@ -9,6 +9,10 @@ scyjh2@nottingham.ac.uk
 
 ----------------------------------------------------------------------
 
+We use some functions from the list library
+
+> import Data.List
+
 For flexibility, we define constants for the row and column size of the
 board, length of a winning sequence, and search depth for the game tree:
 
@@ -68,12 +72,9 @@ The following functions together do the job of getting whose turn it is
 
 > countPlayerInRow :: Row -> Player -> Int
 > countPlayerInRow [] _ = 0
-> countPlayerInRow (p: ps) player = (compare p player) + (countPlayerInRow ps p)
->   where
->       compare :: Player -> Player -> Int
->       compare p1 p2
->           | p1 == p2 = 1
->           | otherwise = 0
+> countPlayerInRow (p: ps) player
+>   | p == player = 1 + countPlayerInRow ps p
+>   | otherwise = countPlayerInRow ps p
 >
 > countPlayer :: Board -> Player -> Int
 > countPlayer [] _ = 0
@@ -108,8 +109,6 @@ to win in the row
 > countSeqPlayerInRow player row win | head row == player = countSeqPlayerInRow player (tail row) (win-1)
 >                                    | otherwise = False
 
-
-
 > testBoard :: Board
 > testBoard = [[B,B,B,B,B,B,B],
 >             [B,B,B,B,B,B,B],
@@ -117,3 +116,26 @@ to win in the row
 >             [B,B,B,X,X,B,B],
 >             [B,B,O,O,X,B,B],
 >             [B,O,O,X,X,X,O]]
+
+The following functions intended to check if some player has won
+
+> getRows :: Board -> [Row]
+> getRows = id
+>
+> getCols :: Board -> [Row]
+> getCols = transpose
+>
+> getDgnls :: Board -> [Row]
+> getDgnls b
+>   | length b < 2 || length (b!!0) < 2 = getDgnl b
+>   | otherwise = getDgnl b ++ getDgnl (map reverse b)
+>
+> getDgnl :: Board -> [Row]
+> getDgnl = tail . getDgnl' [] 
+>   where
+>       getDgnl' :: Board -> [Row] -> [Row]
+>       getDgnl' rs [] = ([h | h:t <- rs]) : (transpose [t | h:t <- rs])
+>       getDgnl' rs (e:es) = [h | h:_ <- rs] : getDgnl' (e:[t | _:t <- rs]) es
+>
+> hasWon :: Player -> Board -> Bool
+> hasWon p b = any (hasRow p) (getRows b ++ getCols b ++ getDgnls b)
