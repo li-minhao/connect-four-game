@@ -47,7 +47,7 @@ a blank representing a position on the board that is not yet occupied:
 The following code displays a board on the screen:
 
 > showBoard :: Board -> IO ()
-> showBoard b = putStrLn (unlines (map showRow b ++ [line] ++ [nums]))
+> showBoard b = putStrLn ("\n" ++ unlines (map showRow b ++ [line] ++ [nums]))
 >               where
 >                  showRow = map showPlayer
 >                  line    = replicate cols '-'
@@ -93,9 +93,15 @@ The following functions check if the given player has got a sequence indicated
 to win in the row
 
 > hasRow :: Player -> Row -> Bool
-> hasRow player [] = False
-> hasRow player row | head row == player = countSeqPlayerInRow player (tail row) (win-1) || hasRow player (tail row) 
->                   | otherwise = hasRow player (tail row) 
+> hasRow p [] = False
+> hasRow p r | head r == p = count p (tail r) (win-1) || hasRow p (tail r) 
+>            | otherwise = hasRow p (tail r) 
+
+> count :: Player -> Row -> Int -> Bool
+> count p r 0 = True
+> count p [] w = False
+> count p r w | head r == p = count p (tail r) (w-1)
+>             | otherwise = False
 
 > testPlayers :: Row
 > testPlayers = [O, O, O, O, X, B]
@@ -105,12 +111,6 @@ to win in the row
 
 > testPlayers3 :: Row
 > testPlayers3 = [O, O, O, X, O, B, B]
-
-> countSeqPlayerInRow :: Player -> Row -> Int -> Bool
-> countSeqPlayerInRow player row 0 = True
-> countSeqPlayerInRow player [] win = False
-> countSeqPlayerInRow player row win | head row == player = countSeqPlayerInRow player (tail row) (win-1)
->                                    | otherwise = False
 
 > testBoard :: Board
 > testBoard = [[B,B,B,B,B,B,B],
@@ -146,30 +146,14 @@ The following functions intended to check if some player has won
 The following functions add the give player to the board at the indicated column 
 
 > move :: Player -> Int -> Board -> Board
-> move player colNum board = myTranspose (addPlayerToBoard player colNum (myTranspose board))
+> move p c b = transpose (move' p c (transpose b))
 
-> addPlayerToBoard :: Player -> Int -> Board -> Board
-> addPlayerToBoard player colNum board = (take colNum board) ++ [reverse (addPlayerToRow player (reverse (board !! colNum)))] ++ (drop (colNum+1) board)
+> move' :: Player -> Int -> Board -> Board
+> move' p c b = (take c b) ++ [reverse (moverow p (reverse (b !! c)))] ++ (drop (c+1) b)
 
-> addPlayerToRow :: Player -> Row -> Row
-> addPlayerToRow player (x:xs) | x == B = (player:xs)
->                              | otherwise = x : addPlayerToRow player xs
-
-> myTranspose :: Board -> [Row]
-> myTranspose [] = []
-> myTranspose board | head board == [] = []
->                   | otherwise = heads board : myTranspose (removeHeads board)
-
-> heads :: Board -> Row 
-> heads [] = []
-> heads (x:xs) | x == [] = []
->              | otherwise = head x : heads xs
-
-> removeHeads :: Board -> [Row]
-> removeHeads [] = []
-> removeHeads (x:xs) | x == [] = []
->                    | otherwise = tail x : removeHeads xs
-
+> moverow :: Player -> Row -> Row
+> moverow player (x:xs) | x == B = (player:xs)
+>                       | otherwise = x : moverow player xs
 
 
 The main functions of the game - to interact with the users and 
@@ -189,29 +173,42 @@ run the game accordingly
 >             [B,B,B,B,B,B,B],
 >             [B,O,B,B,B,B,B]]
 
-> connectFour :: IO()
-> connectFour = play initBoard initPlayer
+> connectfour :: IO()
+> connectfour = play initBoard initPlayer
+
+> fullBoard :: Board
+> fullBoard = [[X,O,X,O,X,O,X],
+>              [X,O,O,X,O,X,O],
+>              [X,O,X,O,X,O,X],
+>              [X,O,O,X,O,X,O],
+>              [X,O,X,O,X,O,X],
+>              [X,O,O,X,O,X,O]]
+
+> full :: Board -> Bool
+> full b = not (any (elem B) b)
 
 > play :: Board -> Player -> IO()
-> play board player | hasWon O board = do putStr("\n")
->                                         showBoard board 
->                                         putStrLn "Player O has won!"
->                   | hasWon X board = do putStr("\n")
->                                         showBoard board 
->                                         putStrLn "Player X has won!"
->                   | otherwise = do putStr("\n")
->                                    showBoard board
->                                    putStrLn ("\nPlayer " ++ show player ++ " enter your move:")
->                                    colInput <- getInt                
->                                    play (move player colInput board) (turn (move player colInput board))
->                                       where
->                                           getInt :: IO Int
->                                           getInt = do ns <- getLine
->                                                       if length ns > 0 && all isDigit ns && testInput board (read ns) then 
->                                                           return (read ns)
->                                                       else
->                                                           do putStrLn "Invalid input. Try again:"
->                                                              getInt
+> play b p | hasWon O b = do showBoard b
+>                            putStrLn "Player O has won!"
+>          | hasWon X b = do showBoard b
+>                            putStrLn "Player X has won!"
+>          | full b = do showBoard b 
+>                        putStrLn "Draw!"
+>          | otherwise = do showBoard b
+>                           putStrLn ("\nPlayer " ++ show p ++ " enter your move:")
+>                           c <- getInt b            
+>                           play (move p c b) (turn (move p c b))
+>                                    
+
+
+> getInt :: Board -> IO Int
+> getInt b = do ns <- getLine
+>               if length ns > 0 && all isDigit ns && testInput b (read ns) then 
+>                  return (read ns)
+>               else
+>                  do putStrLn "Invalid input. Try again:"
+>                     getInt b
 >
 > testInput :: Board -> Int -> Bool
-> testInput board col = col < cols && length board > 0 && length (board!!0) > col && board!!0!!col == B
+> testInput b c = c < cols && length b > 0 && length (b!!0) > c && b!!0!!c == B
+
