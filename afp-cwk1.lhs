@@ -193,12 +193,13 @@ run the game accordingly
 > connectFour = play initBoard initPlayer
 
 > play :: Board -> Player -> IO()
-> play board player | hasWon O board = putStrLn "Player O has won!"
->                   | hasWon X board = putStrLn "Player X has won!"
+> play board player | hasWon O board = do showBoard board 
+>                                         putStrLn "Player O has won!"
+>                   | hasWon X board = do showBoard board 
+>                                         putStrLn "Player X has won!"
 >                   | otherwise = do showBoard board
 >                                    putStrLn ("\nPlayer " ++ show player ++ " enter your move:")
->                                    colInput <- getInt       
->                                    putStrLn (show player)           
+>                                    colInput <- getInt                
 >                                    play (move player colInput board) (turn (move player colInput board))
 >                                       
 
