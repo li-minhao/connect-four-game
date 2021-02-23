@@ -31,7 +31,7 @@ board, length of a winning sequence, and search depth for the game tree:
 > win = 4
 >
 > depth :: Int
-> depth = 6
+> depth = 1
 
 The board itself is represented as a list of rows, where each row is
 a list of player values, subject to the above row and column sizes:
@@ -170,9 +170,9 @@ run the game accordingly
 >             [B,B,B,B,B,B,B],
 >             [B,O,B,B,B,B,B]]
 
-> connectfour :: IO()
-> connectfour = do showBoard initBoard
->                  play initBoard firstPlayer (Node (initBoard, firstPlayer) [])
+> main :: IO()
+> main = do showBoard initBoard
+>           play initBoard firstPlayer (Node (initBoard, firstPlayer) [])
 
 > fullBoard :: Board
 > fullBoard = [[X,O,X,O,X,O,X],
@@ -181,6 +181,17 @@ run the game accordingly
 >              [X,O,O,X,O,X,O],
 >              [X,O,X,O,X,O,X],
 >              [X,O,O,X,O,X,O]]
+
+
+> oWinBoard :: Board
+> oWinBoard = [[B,B,B,B,B,B,B],
+>              [B,B,B,B,B,B,B],
+>              [B,B,B,B,B,B,B],
+>              [X,O,B,B,B,B,B],
+>              [X,O,B,B,B,B,B],
+>              [X,O,B,B,B,B,B]]
+
+
 
 > full :: Board -> Bool
 > full b = not (any (elem B) b)
@@ -249,11 +260,12 @@ The following functions decide the next step to move
 > nodePlayer (Node (_, p) _) = p
 >
 > nextMove :: Tree (Board, Player) -> Board
-> nextMove (Node (b, p) (n:ns)) | len == 0 = nodeBoard n
->                               | otherwise = moves !! randomNum (length moves) 
->                                    where 
->                                        moves = getMoves ns
->                                        len = length moves
+> nextMove (Node (b, p) ns) | lenMoves == 0 = nodeBoard (ns !! (randomNum lenNs))
+>                           | otherwise = moves !! randomNum lenMoves
+>                                where 
+>                                    moves = getMoves ns
+>                                    lenMoves = length moves
+>                                    lenNs = length ns
 >
 > getMoves :: [Tree (Board, Player)] -> [Board]
 > getMoves ns =  [nodeBoard n | n <- ns, nodePlayer n == X]
