@@ -194,8 +194,6 @@ run the game accordingly
 >                           c <- getInt b            
 >                           play (move p c b) (turn (move p c b))
 >                                    
-
-
 > getInt :: Board -> IO Int
 > getInt b = do ns <- getLine
 >               if length ns > 0 && all isDigit ns && testInput b (read ns) then 
