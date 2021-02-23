@@ -195,7 +195,7 @@ run the game accordingly
 >            | otherwise = do putStrLn ("\nPlayer O enter your move:")
 >                             c <- getInt b
 >                             showBoard (move p c b) 
->                             play (move p c b) (turn (move p c b)) (gameTree (move p c b) X) 
+>                             play (move p c b) X (gameTree (move p c b) X) 
 >                               where 
 >                                   nextB = (nextMove t)
 
