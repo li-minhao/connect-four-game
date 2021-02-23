@@ -9,12 +9,14 @@ scyjh2@nottingham.ac.uk
 
 ----------------------------------------------------------------------
 
-We use some functions from the list library
+We use some functions from the following libraries
 
 > import Data.List
 > import Data.Char
 > import System.IO
 > import Data.Char
+> import System.IO.Unsafe
+> import System.Random
 
 For flexibility, we define constants for the row and column size of the
 board, length of a winning sequence, and search depth for the game tree:
@@ -225,3 +227,28 @@ Game tree is defined below
 >                       bs = [f b | f <- map (move p) ms]
 >                       ms = [c | c <- (filter (testInput b) [0..cols - 1]) ]
 >                       p' = if p == firstPlayer then secondPlayer else firstPlayer
+
+
+The following functions decide the next step to move 
+
+> testTree :: Tree (Board, Player)
+> testTree = (Node (initBoard, O) [Node (initBoard, O) [], Node (secBoard, X) [], Node (initBoard, X) []])
+>
+> testTrees :: [Tree (Board, Player)]
+> testTrees = [Node (initBoard, O) [], Node (secBoard, X) []]
+>
+> nodeBoard :: Tree (Board, Player) -> Board
+> nodeBoard (Node (b, _) _) = b
+>
+> nodePlayer :: Tree (Board, Player) -> Player
+> nodePlayer (Node (_, p) _) = p
+>
+> nextMoves :: Tree (Board, Player) -> Board
+> nextMoves (Node (b, p) ns) = moves !! randomNum (length moves) 
+>                                where moves = getMoves ns
+>
+> getMoves :: [Tree (Board, Player)] -> [Board]
+> getMoves ns =  [nodeBoard n | n <- ns, nodePlayer n == X]
+>
+> randomNum :: Int -> Int
+> randomNum n = unsafePerformIO (randomRIO (0,n-1))
