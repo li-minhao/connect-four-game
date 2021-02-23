@@ -209,14 +209,19 @@ Game tree is defined below
 
 > data Tree x = Node x [Tree x] deriving Show
 >
-> gameTree :: Board -> Player -> Tree Board
+> gameTree :: Board -> Player -> Tree (Board, Player)
 > gameTree = gameTree' 0
 >
-> gameTree' :: Int -> Board -> Player -> Tree Board
+> gameTree' :: Int -> Board -> Player -> Tree (Board, Player)
 > gameTree' d b p 
->   | d >= depth = Node b []
->   | otherwise = Node b [gameTree' (d + 1) b' p' | b' <- bs]
+>   | hasWon firstPlayer b = Node (b, firstPlayer) []
+>   | hasWon secondPlayer b = Node (b, secondPlayer) []
+>   | d >= depth || full b = Node (b, B) []
+>   | otherwise = Node (b, minimax) st
 >                   where 
+>                       minimax = (if turn b == O then minimum else maximum) ps
+>                       ps = [p | Node (_, p) _ <- st]
+>                       st = [gameTree' (d + 1) b' p' | b' <- bs]
 >                       bs = [f b | f <- map (move p) ms]
 >                       ms = [c | c <- (filter (testInput b) [0..cols - 1]) ]
 >                       p' = if p == firstPlayer then secondPlayer else firstPlayer
