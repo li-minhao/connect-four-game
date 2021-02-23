@@ -157,9 +157,6 @@ The following functions add the give player to the board at the indicated column
 The main functions of the game - to interact with the users and 
 run the game accordingly
 
-> initPlayer :: Player
-> initPlayer = O
-
 > initBoard :: Board
 > initBoard = replicate rows (replicate cols B)
 
@@ -172,7 +169,7 @@ run the game accordingly
 >             [B,O,B,B,B,B,B]]
 
 > connectfour :: IO()
-> connectfour = play initBoard initPlayer
+> connectfour = play initBoard firstPlayer
 
 > fullBoard :: Board
 > fullBoard = [[X,O,X,O,X,O,X],
@@ -211,3 +208,17 @@ run the game accordingly
 > testInput b c = c < cols && length b > 0 && length (b!!0) > c && b!!0!!c == B
 
 Game tree is defined below
+
+> data Tree x = Node x [Tree x] deriving Show
+>
+> gameTree :: Board -> Player -> Tree Board
+> gameTree = gameTree' 0
+>
+> gameTree' :: Int -> Board -> Player -> Tree Board
+> gameTree' d b p 
+>   | d >= depth = Node b []
+>   | otherwise = Node b [gameTree' (d + 1) b' p' | b' <- bs]
+>                   where 
+>                       bs = [f b | f <- map (move p) ms]
+>                       ms = [c | c <- (filter (testInput b) [0..cols - 1]) ]
+>                       p' = if p == firstPlayer then secondPlayer else firstPlayer
