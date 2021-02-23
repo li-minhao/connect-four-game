@@ -71,22 +71,14 @@ The first player to go is pre-defined, so we can get the second player in turn
 >   | otherwise = X
 
 
-The following functions together do the job of getting whose turn it is
+The following function does the job of getting whose turn it is
 
-> countPlayerInRow :: Row -> Player -> Int
-> countPlayerInRow [] _ = 0
-> countPlayerInRow (p: ps) player
->   | p == player = 1 + countPlayerInRow ps player
->   | otherwise = countPlayerInRow ps player
->
-> countPlayer :: Board -> Player -> Int
-> countPlayer [] _ = 0
-> countPlayer (ps: pss) p = (countPlayerInRow ps p) + (countPlayer pss p)
->
 > turn :: Board -> Player
-> turn b
->   | countPlayer b firstPlayer > countPlayer b secondPlayer = secondPlayer
->   | otherwise = firstPlayer
+> turn b = if firsts > seconds then secondPlayer else firstPlayer
+>           where
+>               firsts = length (filter (== firstPlayer) ps)
+>               seconds = length (filter (== secondPlayer) ps)
+>               ps = concat b
 
 
 The following functions check if the given player has got a sequence indicated 
@@ -135,10 +127,16 @@ The following functions intended to check if some player has won
 >
 > getDgnl :: Board -> [Row]
 > getDgnl = tail . getDgnl' [] 
->   where
->       getDgnl' :: Board -> [Row] -> [Row]
->       getDgnl' rs [] = ([h | h:t <- rs]) : (transpose [t | h:t <- rs])
->       getDgnl' rs (e:es) = [h | h:_ <- rs] : getDgnl' (e:[t | _:t <- rs]) es
+> 
+> getDgnl' :: Board -> [Row] -> [Row]
+> getDgnl' b rs
+>   | length rs == 0 = hs : (transpose ts)
+>   | otherwise = hs : getDgnl' (h:ts) t
+>       where
+>           hs = [h | h:t <- b]
+>           ts = [t | h:t <- b]
+>           h = head rs
+>           t = tail rs 
 >
 > hasWon :: Player -> Board -> Bool
 > hasWon p b = any (hasRow p) (getRows b ++ getCols b ++ getDgnls b)
