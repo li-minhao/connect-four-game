@@ -210,3 +210,4 @@ run the game accordingly
 > testInput :: Board -> Int -> Bool
 > testInput b c = c < cols && length b > 0 && length (b!!0) > c && b!!0!!c == B
 
+Game tree is defined below
