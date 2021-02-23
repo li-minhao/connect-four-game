@@ -171,7 +171,8 @@ run the game accordingly
 >             [B,O,B,B,B,B,B]]
 
 > connectfour :: IO()
-> connectfour = play initBoard firstPlayer
+> connectfour = do showBoard initBoard
+>                  play initBoard firstPlayer (Node (initBoard, firstPlayer) [])
 
 > fullBoard :: Board
 > fullBoard = [[X,O,X,O,X,O,X],
@@ -184,17 +185,21 @@ run the game accordingly
 > full :: Board -> Bool
 > full b = not (any (elem B) b)
 
-> play :: Board -> Player -> IO()
-> play b p | hasWon O b = do showBoard b
->                            putStrLn "Player O has won!"
->          | hasWon X b = do showBoard b
->                            putStrLn "Player X has won!"
->          | full b = do showBoard b 
->                        putStrLn "Draw!"
->          | otherwise = do showBoard b
->                           putStrLn ("\nPlayer " ++ show p ++ " enter your move:")
->                           c <- getInt b            
->                           play (move p c b) (turn (move p c b))
+> play :: Board -> Player -> Tree (Board, Player) -> IO()
+> play b p t | hasWon O b = putStrLn "Player O has won!"
+>            | hasWon X b = putStrLn "Player X has won!"
+>            | full b = putStrLn "Draw!"
+>            | p == X = do putStrLn ("Player X is thinking...") 
+>                          showBoard nextB            
+>                          play nextB O t                           
+>            | otherwise = do putStrLn ("\nPlayer O enter your move:")
+>                             c <- getInt b
+>                             showBoard (move p c b) 
+>                             play (move p c b) (turn (move p c b)) (gameTree (move p c b) X) 
+>                               where 
+>                                   nextB = (nextMove t)
+
+
 >                                    
 > getInt :: Board -> IO Int
 > getInt b = do ns <- getLine
@@ -232,7 +237,7 @@ Game tree is defined below
 The following functions decide the next step to move 
 
 > testTree :: Tree (Board, Player)
-> testTree = (Node (initBoard, O) [Node (initBoard, O) [], Node (secBoard, X) [], Node (initBoard, X) []])
+> testTree = (Node (initBoard, O) [Node (initBoard, O) [Node (initBoard, O) []], Node (secBoard, X) [], Node (initBoard, X) []])
 >
 > testTrees :: [Tree (Board, Player)]
 > testTrees = [Node (initBoard, O) [], Node (secBoard, X) []]
@@ -243,9 +248,12 @@ The following functions decide the next step to move
 > nodePlayer :: Tree (Board, Player) -> Player
 > nodePlayer (Node (_, p) _) = p
 >
-> nextMoves :: Tree (Board, Player) -> Board
-> nextMoves (Node (b, p) ns) = moves !! randomNum (length moves) 
->                                where moves = getMoves ns
+> nextMove :: Tree (Board, Player) -> Board
+> nextMove (Node (b, p) (n:ns)) | len == 0 = nodeBoard n
+>                               | otherwise = moves !! randomNum (length moves) 
+>                                    where 
+>                                        moves = getMoves ns
+>                                        len = length moves
 >
 > getMoves :: [Tree (Board, Player)] -> [Board]
 > getMoves ns =  [nodeBoard n | n <- ns, nodePlayer n == X]
