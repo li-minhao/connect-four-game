@@ -31,7 +31,7 @@ board, length of a winning sequence, and search depth for the game tree:
 > win = 4
 >
 > depth :: Int
-> depth = 1
+> depth = 6
 
 The board itself is represented as a list of rows, where each row is
 a list of player values, subject to the above row and column sizes:
@@ -260,15 +260,19 @@ The following functions decide the next step to move
 > nodePlayer (Node (_, p) _) = p
 >
 > nextMove :: Tree (Board, Player) -> Board
-> nextMove (Node (b, p) ns) | lenMoves == 0 = nodeBoard (ns !! (randomNum lenNs))
->                           | otherwise = moves !! randomNum lenMoves
+> nextMove (Node (b, p) ns) | lenXMoves > 0 = xMoves !! randomNum lenXMoves
+>                           | lenBMoves > 0 = bMoves !! randomNum lenBMoves
+>                           | otherwise = nodeBoard (ns !! (randomNum lenNs))
 >                                where 
->                                    moves = getMoves ns
->                                    lenMoves = length moves
->                                    lenNs = length ns
+>                                    xMoves = getMoves X ns
+>                                    bMoves = getMoves B ns
+>                                    lenBMoves = length bMoves
+>                                    lenXMoves = length xMoves
+>                                    lenNs = length ns	
 >
-> getMoves :: [Tree (Board, Player)] -> [Board]
-> getMoves ns =  [nodeBoard n | n <- ns, nodePlayer n == X]
+>
+> getMoves :: Player -> [Tree (Board, Player)] -> [Board]
+> getMoves p ns =  [nodeBoard n | n <- ns, nodePlayer n == p]
 >
 > randomNum :: Int -> Int
 > randomNum n = unsafePerformIO (randomRIO (0,n-1))
