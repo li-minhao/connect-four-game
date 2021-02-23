@@ -204,11 +204,14 @@ run the game accordingly
 >                                    putStrLn ("\nPlayer " ++ show player ++ " enter your move:")
 >                                    colInput <- getInt                
 >                                    play (move player colInput board) (turn (move player colInput board))
->                                       
-
-> getInt :: IO Int
-> getInt = do charInput <- getChar
->             if (isDigit charInput) then 
->                return (read [charInput])
->             else 
->                return 0
+>                                       where
+>                                           getInt :: IO Int
+>                                           getInt = do ns <- getLine
+>                                                       if length ns > 0 && all isDigit ns && testInput board (read ns) then 
+>                                                           return (read ns)
+>                                                       else
+>                                                           do putStrLn "Invalid input. Try again:"
+>                                                              getInt
+>
+> testInput :: Board -> Int -> Bool
+> testInput board col = col < cols && length board > 0 && length (board!!0) > col && board!!0!!col == B
