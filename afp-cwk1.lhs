@@ -216,7 +216,9 @@ Game tree is defined below
 >
 > gameTree' :: Int -> Board -> Player -> Tree Board
 > gameTree' d b p 
->   | d >= depth = Node b []
+>   | d >= depth || hasWon firstPlayer b ||
+>           hasWon secondPlayer b || full b 
+>       = Node b []
 >   | otherwise = Node b [gameTree' (d + 1) b' p' | b' <- bs]
 >                   where 
 >                       bs = [f b | f <- map (move p) ms]
