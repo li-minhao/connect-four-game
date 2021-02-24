@@ -61,8 +61,13 @@ The following code displays a board on the screen:
 > showPlayer X = 'X'
 
 ----------------------------------------------------------------------
+The initial game board is defined as below
 
-The first player to go is pre-defined, so we can get the second player in turn
+> initB :: Board
+> initB = replicate rows (replicate cols B)
+
+The first player to go is pre-defined, so the second player can be obtained 
+in turn
 
 > p1 :: Player
 > p1 = O
@@ -71,7 +76,7 @@ The first player to go is pre-defined, so we can get the second player in turn
 > p2 | p1 == X = O
 >    | otherwise = X
 
-The following function does the job of getting whose turn it is
+The following function does the job of indicating the next player
 
 > turn :: Board -> Player
 > turn b = if firsts > seconds then p2 else p1
@@ -83,7 +88,6 @@ The following function does the job of getting whose turn it is
 The following functions check if the given player has got a sequence indicated 
 to win in the row
 
-
 > hasRow :: Player -> Row -> Bool
 > hasRow = count win
 >
@@ -94,7 +98,8 @@ to win in the row
 > count w p (r:rs) | r == p = count (w-1) p rs
 >                  | otherwise = count win p rs
 
-The following functions are intended to check if some player has won
+The following functions are intended to check if any player has won by looking 
+into rows, cols and dignals from the board
 
 > getRows :: Board -> [Row]
 > getRows = id
@@ -120,46 +125,29 @@ The following functions are intended to check if some player has won
 > hasWon :: Player -> Board -> Bool
 > hasWon p b = any (hasRow p) (getRows b ++ getCols b ++ getDgnls b)
 
-The following functions add the give player to the board at the indicated column 
+The funciton full checks if the board given has no move blank cell
+
+> full :: Board -> Bool
+> full b = not (any (elem B) b)
+
+The following functions add the given player to the board at the indicated 
+column 
 
 > move :: Player -> Int -> Board -> Board
 > move p c b = transpose ((take c tb) ++ [r] ++ (drop (c+1) tb))
 >                where 
 >                    r = reverse (moveR p (reverse (tb !! c)))
 >                    tb = transpose b
-
+>
 > moveR :: Player -> Row -> Row
 > moveR p (x:xs) | x == B = (p:xs)
 >                | otherwise = x : moveR p xs
+>
 
+The functions below checks if the given column numbers to move if valid
+- a valid digit indicating the column number that is within the defined 
+board size and still has at least one empty cell
 
-The main functions of the game - to interact with the users and 
-run the game accordingly
-
-> initB :: Board
-> initB = replicate rows (replicate cols B)
-
-> main :: IO()
-> main = play initB p1
-
-> play :: Board -> Player -> IO()
-> play b p = do showBoard b
->               play' b p
-
-> play' :: Board -> Player -> IO()
-> play' b p | hasWon O b = putStrLn "Player O has won!"
->           | hasWon X b = putStrLn "Player X has won!"
->           | full b = putStrLn "Draw!"
->           | p == X = do putStrLn ("Player X is thinking...")           
->                         play (nextMove p b) O                       
->           | otherwise = do putStrLn ("\nPlayer O enter your move:")
->                            c <- getInt b
->                            play (move p c b) X
-
-
-> full :: Board -> Bool
-> full b = not (any (elem B) b)
-              
 > getInt :: Board -> IO Int
 > getInt b = do ns <- getLine
 >               if length ns > 0 && all isDigit ns && valid b (read ns) then 
@@ -171,7 +159,7 @@ run the game accordingly
 > valid :: Board -> Int -> Bool
 > valid b c = c < cols && length b > 0 && length (b!!0) > c && b!!0!!c == B
 
-Game tree is defined as below
+Game tree is defined as below with the pre-defined size 
 
 > data Tree x = Node x [Tree x] deriving Show
 >
@@ -192,19 +180,19 @@ Game tree is defined as below
 >                       ms = [c | c <- (filter (valid b) [0..cols - 1]) ]
 >                       p' = if p == p1 then p2 else p1
 
-The following functions decide the next step to move 
+The following functions decide the next and best step the computer to move. A 
+random selector is applied if multiple equally good steps exist
 
 > nodeBoard :: Tree (Board, Player) -> Board
 > nodeBoard (Node (b, _) _) = b
 >
 > nodePlayer :: Tree (Board, Player) -> Player
 > nodePlayer (Node (_, p) _) = p
-
-
+>
+>
 > nextMove :: Player -> Board -> Board
 > nextMove p = bestMove . gameTree p
-
-
+>
 > bestMove :: Tree (Board, Player) -> Board
 > bestMove (Node (b, p) ns) | lenXMoves > 0 = xMoves !! randomNum lenXMoves
 >                           | lenBMoves > 0 = bMoves !! randomNum lenBMoves
@@ -221,3 +209,25 @@ The following functions decide the next step to move
 >
 > randomNum :: Int -> Int
 > randomNum n = unsafePerformIO (randomRIO (0,n-1))
+
+
+The main functions of the game - to interact with the users and 
+update the game status accordingly
+
+> main :: IO()
+> main = play initB p1
+>
+> play :: Board -> Player -> IO()
+> play b p = do showBoard b
+>               play' b p
+>
+> play' :: Board -> Player -> IO()
+> play' b p | hasWon O b = putStrLn "Player O has won!"
+>           | hasWon X b = putStrLn "Player X has won!"
+>           | full b = putStrLn "Draw!"
+>           | p == X = do putStrLn ("Player X is thinking...")           
+>                         play (nextMove p b) O                       
+>           | otherwise = do putStrLn ("\nPlayer O enter your move:")
+>                            c <- getInt b
+>                            play (move p c b) X
+
