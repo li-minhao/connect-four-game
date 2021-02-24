@@ -94,7 +94,7 @@ to win in the row
 > count w p (r:rs) | r == p = count (w-1) p rs
 >                  | otherwise = count win p rs
 
-The following functions intended to check if some player has won
+The following functions are intended to check if some player has won
 
 > getRows :: Board -> [Row]
 > getRows = id
@@ -149,12 +149,10 @@ run the game accordingly
 >           | hasWon X b = putStrLn "Player X has won!"
 >           | full b = putStrLn "Draw!"
 >           | p == X = do putStrLn ("Player X is thinking...")           
->                         play nextB O                       
+>                         play (nextMove p b) O                       
 >           | otherwise = do putStrLn ("\nPlayer O enter your move:")
 >                            c <- getInt b
 >                            play (move p c b) X
->                              where 
->                                 nextB = (nextMove b)
 
 
 > full :: Board -> Bool
@@ -199,12 +197,12 @@ The following functions decide the next step to move
 >
 > nodePlayer :: Tree (Board, Player) -> Player
 > nodePlayer (Node (_, p) _) = p
-> 
->
-> nextMove :: Board -> Board
-> nextMove = bestMove . (gameTree X)
->
->
+
+
+> nextMove :: Player -> Board -> Board
+> nextMove p = bestMove . gameTree p
+
+
 > bestMove :: Tree (Board, Player) -> Board
 > bestMove (Node (b, p) ns) | lenXMoves > 0 = xMoves !! randomNum lenXMoves
 >                           | lenBMoves > 0 = bMoves !! randomNum lenBMoves
