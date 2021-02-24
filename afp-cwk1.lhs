@@ -94,7 +94,7 @@ to win in the row
 > count p r w | head r == p = count p (tail r) (w-1)
 >             | otherwise = False
 
-The following functions intended to check if some player has won
+The following functions are intended to check if some player has won
 
 > getRows :: Board -> [Row]
 > getRows = id
