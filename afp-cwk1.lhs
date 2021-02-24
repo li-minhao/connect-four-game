@@ -138,25 +138,27 @@ run the game accordingly
 > initB = replicate rows (replicate cols B)
 
 > main :: IO()
-> main = do showBoard initB
->           play initB p1 (Node (initB, p1) [])
+> main = play initB p1
+
+> play :: Board -> Player -> IO()
+> play b p = do showBoard b
+>               play' b p
+
+> play' :: Board -> Player -> IO()
+> play' b p | hasWon O b = putStrLn "Player O has won!"
+>           | hasWon X b = putStrLn "Player X has won!"
+>           | full b = putStrLn "Draw!"
+>           | p == X = do putStrLn ("Player X is thinking...")           
+>                         play nextB O                       
+>           | otherwise = do putStrLn ("\nPlayer O enter your move:")
+>                            c <- getInt b
+>                            play (move p c b) X
+>                              where 
+>                                 nextB = (nextMove b)
+
 
 > full :: Board -> Bool
 > full b = not (any (elem B) b)
-
-> play :: Board -> Player -> Tree (Board, Player) -> IO()
-> play b p t | hasWon O b = putStrLn "Player O has won!"
->            | hasWon X b = putStrLn "Player X has won!"
->            | full b = putStrLn "Draw!"
->            | p == X = do putStrLn ("Player X is thinking...") 
->                          showBoard nextB            
->                          play nextB O t                           
->            | otherwise = do putStrLn ("\nPlayer O enter your move:")
->                             c <- getInt b
->                             showBoard (move p c b) 
->                             play (move p c b) X (gameTree (move p c b) X) 
->                               where 
->                                   nextB = (nextMove t)
               
 > getInt :: Board -> IO Int
 > getInt b = do ns <- getLine
@@ -173,11 +175,11 @@ Game tree is defined as below
 
 > data Tree x = Node x [Tree x] deriving Show
 >
-> gameTree :: Board -> Player -> Tree (Board, Player)
+> gameTree :: Player -> Board -> Tree (Board, Player)
 > gameTree = gameTree' 0
 >
-> gameTree' :: Int -> Board -> Player -> Tree (Board, Player)
-> gameTree' d b p 
+> gameTree' :: Int -> Player -> Board -> Tree (Board, Player)
+> gameTree' d p b 
 >   | hasWon p1 b = Node (b, p1) []
 >   | hasWon p2 b = Node (b, p2) []
 >   | d >= depth || full b = Node (b, B) []
@@ -185,7 +187,7 @@ Game tree is defined as below
 >                   where 
 >                       minimax = (if turn b == O then minimum else maximum) ps
 >                       ps = [p | Node (_, p) _ <- st]
->                       st = [gameTree' (d + 1) b' p' | b' <- bs]
+>                       st = [gameTree' (d + 1) p' b' | b' <- bs]
 >                       bs = [f b | f <- map (move p) ms]
 >                       ms = [c | c <- (filter (valid b) [0..cols - 1]) ]
 >                       p' = if p == p1 then p2 else p1
@@ -197,9 +199,14 @@ The following functions decide the next step to move
 >
 > nodePlayer :: Tree (Board, Player) -> Player
 > nodePlayer (Node (_, p) _) = p
+> 
 >
-> nextMove :: Tree (Board, Player) -> Board
-> nextMove (Node (b, p) ns) | lenXMoves > 0 = xMoves !! randomNum lenXMoves
+> nextMove :: Board -> Board
+> nextMove = bestMove . (gameTree X)
+>
+>
+> bestMove :: Tree (Board, Player) -> Board
+> bestMove (Node (b, p) ns) | lenXMoves > 0 = xMoves !! randomNum lenXMoves
 >                           | lenBMoves > 0 = bMoves !! randomNum lenBMoves
 >                           | otherwise = nodeBoard (ns !! (randomNum lenNs))
 >                                where 
