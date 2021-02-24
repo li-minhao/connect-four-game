@@ -103,7 +103,9 @@ The following functions are intended to check if some player has won
 > getCols = transpose
 >
 > getDgnls :: Board -> [Row]
-> getDgnls = tail . getDgnl' [] . (\b -> b ++ map reverse b)
+> getDgnls b = getDgnl b ++ getDgnl (map reverse b)
+>           where
+>               getDgnl = tail .getDgnl' []
 > 
 > getDgnl' :: Board -> [Row] -> [Row]
 > getDgnl' b rs
