@@ -94,23 +94,6 @@ to win in the row
 > count p r w | head r == p = count p (tail r) (w-1)
 >             | otherwise = False
 
-> testPlayers :: Row
-> testPlayers = [O, O, O, O, X, B]
-
-> testPlayers2 :: Row
-> testPlayers2 = [O, O, O, X, B, O, O, O, O]
-
-> testPlayers3 :: Row
-> testPlayers3 = [O, O, O, X, O, B, B]
-
-> testBoard :: Board
-> testBoard = [[B,B,B,B,B,B,B],
->              [B,B,B,B,B,B,B],
->              [B,B,B,B,B,B,B],
->              [B,B,B,X,X,B,B],
->              [B,B,O,O,X,B,B],
->              [B,O,O,X,X,X,O]]
-
 The following functions intended to check if some player has won
 
 > getRows :: Board -> [Row]
@@ -138,33 +121,25 @@ The following functions intended to check if some player has won
 The following functions add the give player to the board at the indicated column 
 
 > move :: Player -> Int -> Board -> Board
-> move p c b = transpose (move' p c (transpose b))
+> move p c b = transpose ((take c tb) ++ [r] ++ (drop (c+1) tb))
+>                where 
+>                    r = reverse (moveR p (reverse (tb !! c)))
+>                    tb = transpose b
 
-> move' :: Player -> Int -> Board -> Board
-> move' p c b = (take c b) ++ [reverse (moveRow p (reverse (b !! c)))] ++ (drop (c+1) b)
-
-> moveRow :: Player -> Row -> Row
-> moveRow p (x:xs) | x == B = (p:xs)
->                       | otherwise = x : moveRow p xs
+> moveR :: Player -> Row -> Row
+> moveR p (x:xs) | x == B = (p:xs)
+>                | otherwise = x : moveR p xs
 
 
 The main functions of the game - to interact with the users and 
 run the game accordingly
 
-> initBoard :: Board
-> initBoard = replicate rows (replicate cols B)
-
-> secBoard :: Board
-> secBoard = [[B,B,B,B,B,B,B],
->             [B,B,B,B,B,B,B],
->             [B,B,B,B,B,B,B],
->             [B,B,B,B,B,B,B],
->             [B,B,B,B,B,B,B],
->             [B,O,B,B,B,B,B]]
+> initB :: Board
+> initB = replicate rows (replicate cols B)
 
 > main :: IO()
-> main = do showBoard initBoard
->           play initBoard p1 (Node (initBoard, p1) [])
+> main = do showBoard initB
+>           play initB p1 (Node (initB, p1) [])
 
 > full :: Board -> Bool
 > full b = not (any (elem B) b)
@@ -185,16 +160,16 @@ run the game accordingly
               
 > getInt :: Board -> IO Int
 > getInt b = do ns <- getLine
->               if length ns > 0 && all isDigit ns && testInput b (read ns) then 
+>               if length ns > 0 && all isDigit ns && valid b (read ns) then 
 >                  return (read ns)
 >               else
 >                  do putStrLn "Invalid input. Try again:"
 >                     getInt b
 >
-> testInput :: Board -> Int -> Bool
-> testInput b c = c < cols && length b > 0 && length (b!!0) > c && b!!0!!c == B
+> valid :: Board -> Int -> Bool
+> valid b c = c < cols && length b > 0 && length (b!!0) > c && b!!0!!c == B
 
-Game tree is defined below
+Game tree is defined as below
 
 > data Tree x = Node x [Tree x] deriving Show
 >
@@ -212,17 +187,11 @@ Game tree is defined below
 >                       ps = [p | Node (_, p) _ <- st]
 >                       st = [gameTree' (d + 1) b' p' | b' <- bs]
 >                       bs = [f b | f <- map (move p) ms]
->                       ms = [c | c <- (filter (testInput b) [0..cols - 1]) ]
+>                       ms = [c | c <- (filter (valid b) [0..cols - 1]) ]
 >                       p' = if p == p1 then p2 else p1
 
 The following functions decide the next step to move 
 
-> testTree :: Tree (Board, Player)
-> testTree = (Node (initBoard, O) [Node (initBoard, O) [Node (initBoard, O) []], Node (secBoard, X) [], Node (initBoard, X) []])
->
-> testTrees :: [Tree (Board, Player)]
-> testTrees = [Node (initBoard, O) [], Node (secBoard, X) []]
->
 > nodeBoard :: Tree (Board, Player) -> Board
 > nodeBoard (Node (b, _) _) = b
 >
