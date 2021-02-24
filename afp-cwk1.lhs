@@ -83,16 +83,16 @@ The following function does the job of getting whose turn it is
 The following functions check if the given player has got a sequence indicated 
 to win in the row
 
-> hasRow :: Player -> Row -> Bool
-> hasRow p [] = False
-> hasRow p r | head r == p = count p (tail r) (win-1) || hasRow p (tail r) 
->            | otherwise = hasRow p (tail r) 
 
-> count :: Player -> Row -> Int -> Bool
-> count p r 0 = True
-> count p [] w = False
-> count p r w | head r == p = count p (tail r) (w-1)
->             | otherwise = False
+> hasRow :: Player -> Row -> Bool
+> hasRow = count win
+>
+>
+> count :: Int -> Player -> Row -> Bool
+> count 0 _ _ = True
+> count _ _ []= False
+> count w p (r:rs) | r == p = count (w-1) p rs
+>                  | otherwise = count win p rs
 
 The following functions intended to check if some player has won
 
