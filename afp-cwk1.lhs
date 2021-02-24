@@ -64,24 +64,21 @@ The following code displays a board on the screen:
 
 The first player to go is pre-defined, so we can get the second player in turn
 
-> firstPlayer :: Player
-> firstPlayer = O
+> p1 :: Player
+> p1 = O
 >
-> secondPlayer :: Player
-> secondPlayer
->   | firstPlayer == X = O
->   | otherwise = X
-
+> p2 :: Player
+> p2 | p1 == X = O
+>    | otherwise = X
 
 The following function does the job of getting whose turn it is
 
 > turn :: Board -> Player
-> turn b = if firsts > seconds then secondPlayer else firstPlayer
+> turn b = if firsts > seconds then p2 else p1
 >           where
->               firsts = length (filter (== firstPlayer) ps)
->               seconds = length (filter (== secondPlayer) ps)
+>               firsts = length (filter (== p1) ps)
+>               seconds = length (filter (== p2) ps)
 >               ps = concat b
-
 
 The following functions check if the given player has got a sequence indicated 
 to win in the row
@@ -123,12 +120,7 @@ The following functions intended to check if some player has won
 > getCols = transpose
 >
 > getDgnls :: Board -> [Row]
-> getDgnls b
->   | length b < 2 || length (b!!0) < 2 = getDgnl b
->   | otherwise = getDgnl b ++ getDgnl (map reverse b)
->
-> getDgnl :: Board -> [Row]
-> getDgnl = tail . getDgnl' [] 
+> getDgnls = tail . getDgnl' [] . (\b -> b ++ map reverse b)
 > 
 > getDgnl' :: Board -> [Row] -> [Row]
 > getDgnl' b rs
@@ -138,7 +130,7 @@ The following functions intended to check if some player has won
 >           hs = [h | h:t <- b]
 >           ts = [t | h:t <- b]
 >           h = head rs
->           t = tail rs 
+>           t = tail rs
 >
 > hasWon :: Player -> Board -> Bool
 > hasWon p b = any (hasRow p) (getRows b ++ getCols b ++ getDgnls b)
@@ -149,11 +141,11 @@ The following functions add the give player to the board at the indicated column
 > move p c b = transpose (move' p c (transpose b))
 
 > move' :: Player -> Int -> Board -> Board
-> move' p c b = (take c b) ++ [reverse (moverow p (reverse (b !! c)))] ++ (drop (c+1) b)
+> move' p c b = (take c b) ++ [reverse (moveRow p (reverse (b !! c)))] ++ (drop (c+1) b)
 
-> moverow :: Player -> Row -> Row
-> moverow player (x:xs) | x == B = (player:xs)
->                       | otherwise = x : moverow player xs
+> moveRow :: Player -> Row -> Row
+> moveRow p (x:xs) | x == B = (p:xs)
+>                       | otherwise = x : moveRow p xs
 
 
 The main functions of the game - to interact with the users and 
@@ -172,26 +164,7 @@ run the game accordingly
 
 > main :: IO()
 > main = do showBoard initBoard
->           play initBoard firstPlayer (Node (initBoard, firstPlayer) [])
-
-> fullBoard :: Board
-> fullBoard = [[X,O,X,O,X,O,X],
->              [X,O,O,X,O,X,O],
->              [X,O,X,O,X,O,X],
->              [X,O,O,X,O,X,O],
->              [X,O,X,O,X,O,X],
->              [X,O,O,X,O,X,O]]
-
-
-> oWinBoard :: Board
-> oWinBoard = [[B,B,B,B,B,B,B],
->              [B,B,B,B,B,B,B],
->              [B,B,B,B,B,B,B],
->              [X,O,B,B,B,B,B],
->              [X,O,B,B,B,B,B],
->              [X,O,B,B,B,B,B]]
-
-
+>           play initBoard p1 (Node (initBoard, p1) [])
 
 > full :: Board -> Bool
 > full b = not (any (elem B) b)
@@ -209,9 +182,7 @@ run the game accordingly
 >                             play (move p c b) X (gameTree (move p c b) X) 
 >                               where 
 >                                   nextB = (nextMove t)
-
-
->                                    
+              
 > getInt :: Board -> IO Int
 > getInt b = do ns <- getLine
 >               if length ns > 0 && all isDigit ns && testInput b (read ns) then 
@@ -232,8 +203,8 @@ Game tree is defined below
 >
 > gameTree' :: Int -> Board -> Player -> Tree (Board, Player)
 > gameTree' d b p 
->   | hasWon firstPlayer b = Node (b, firstPlayer) []
->   | hasWon secondPlayer b = Node (b, secondPlayer) []
+>   | hasWon p1 b = Node (b, p1) []
+>   | hasWon p2 b = Node (b, p2) []
 >   | d >= depth || full b = Node (b, B) []
 >   | otherwise = Node (b, minimax) st
 >                   where 
@@ -242,8 +213,7 @@ Game tree is defined below
 >                       st = [gameTree' (d + 1) b' p' | b' <- bs]
 >                       bs = [f b | f <- map (move p) ms]
 >                       ms = [c | c <- (filter (testInput b) [0..cols - 1]) ]
->                       p' = if p == firstPlayer then secondPlayer else firstPlayer
-
+>                       p' = if p == p1 then p2 else p1
 
 The following functions decide the next step to move 
 
@@ -269,7 +239,6 @@ The following functions decide the next step to move
 >                                    lenBMoves = length bMoves
 >                                    lenXMoves = length xMoves
 >                                    lenNs = length ns	
->
 >
 > getMoves :: Player -> [Tree (Board, Player)] -> [Board]
 > getMoves p ns =  [nodeBoard n | n <- ns, nodePlayer n == p]
