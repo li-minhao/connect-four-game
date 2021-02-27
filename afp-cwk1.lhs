@@ -109,8 +109,7 @@ into rows, cols and dignals from the board
 >
 > getDgnls :: Board -> [Row]
 > getDgnls b = getDgnl b ++ getDgnl (map reverse b)
->           where
->               getDgnl = tail .getDgnl' []
+>           where getDgnl = tail .getDgnl' []
 > 
 > getDgnl' :: Board -> [Row] -> [Row]
 > getDgnl' b rs
