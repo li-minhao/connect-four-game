@@ -9,7 +9,7 @@ scyjh2@nottingham.ac.uk
 
 ----------------------------------------------------------------------
 
-We use some functions from the following libraries
+We use some functions from the following libraries including System.Random.
 
 > import Data.List
 > import Data.Char
@@ -60,23 +60,23 @@ The following code displays a board on the screen:
 > showPlayer X = 'X'
 
 ----------------------------------------------------------------------
-initB: The initial game board which is entirely empty. 
+initB: the initial game board which is entirely empty. 
 
 > initB :: Board
 > initB = replicate rows (replicate cols B)
 
-p1: The first player to go is pre-defined
+p1: the first player to go is pre-defined.
 
 > p1 :: Player
 > p1 = O
 
-p2: The second player to go can be deduced from who goes first.
+p2: the second player to go can be deduced from who goes first.
 
 > p2 :: Player
 > p2 | p1 == X = O
 >    | otherwise = X
 
-turn: The function refers the next player from the specified current board 
+turn: the function refers the next player from the specified current board 
       layout.
 
 > turn :: Board -> Player
@@ -86,13 +86,13 @@ turn: The function refers the next player from the specified current board
 >               seconds = length (filter (== p2) ps)
 >               ps = concat b
 
-hasRow : To count if if the given player has got a sequence indicated to win in
+hasRow: to count if if the given player has got a sequence indicated to win in
          the given row.
 
 > hasRow :: Player -> Row -> Bool
 > hasRow = count win
 
-count : Take a counter, w, the player to count and the row to count from as
+count: take a counter, w, the player to count and the row to count from as
         parameters. The counter will decrement when the current cell contains
         the indicated player. If not then the counter will be reseted to the
         pre-defined variable win to start over the counting. The counting is 
@@ -107,27 +107,27 @@ count : Take a counter, w, the player to count and the row to count from as
 > count w p (r:rs) | r == p = count (w - 1) p rs
 >                  | otherwise = count win p rs
 
-getRow: Gets all the rows of the given board.
+getRow: gets all the rows of the given board.
 
 > getRows :: Board -> [Row]
 > getRows = id
 
-getCols: Gets all the columns of the given board.
+getCols: gets all the columns of the given board.
 
 > getCols :: Board -> [Row]
 > getCols = transpose
 
-getDgnls: Gets all the diagnals of the given board.
+getDgnls: gets all the diagnals of the given board.
 
 > getDgnls :: Board -> [Row]
 > getDgnls b = getDgnl b ++ getDgnl (reverse b)
->           where getDgnl = tail .getDgnl' []
+>           where getDgnl = tail . getDgnl' []
 
 getDgnl': Gets the diagnals from top-right to bottom-left of a board.
 
 > getDgnl' :: Board -> [Row] -> [Row]
 > getDgnl' b rs
->   | length rs == 0 = hs : (transpose ts)
+>   | null rs = hs : (transpose ts)
 >   | otherwise = hs : getDgnl' (h:ts) t
 >       where
 >           hs = [h | h:t <- b]
@@ -135,35 +135,45 @@ getDgnl': Gets the diagnals from top-right to bottom-left of a board.
 >           h = head rs
 >           t = tail rs
 
+hasWon: the function checks if the specified player has won in the specified
+        board. Specifically. The play wins if it has a certain number (defined 
+        by win) of consecutive cells in any of the rows, columns, or diagnals.
 
 > hasWon :: Player -> Board -> Bool
 > hasWon p b = any (hasRow p) (getRows b) 
 >           || any (hasRow p) (getCols b) 
 >           || any (hasRow p) (getDgnls b)
 
-full : The funciton full checks if the board given has no move blank cell.
+full: the funciton checks if the board given has no more blank cells.
 
 > full :: Board -> Bool
 > full b = not (any (elem B) b)
 
-The following functions add the given player to the board at the indicated 
-column 
+move : the function add the given player to the board at the indicated column 
+       by 1. getting the columns from the given board (acchieved by getCols), 
+          2. extracting the specified column, 
+          3. reversing the column to add player from the button 
+          4. reversing the column back
+          5. appending the columns back to the board
+          6. getting the columns to transpose the board back
 
 > move :: Player -> Int -> Board -> Board
-> move p c b = transpose (h ++ [r] ++ tail t)
+> move p c b = getCols (h ++ [r] ++ tail t)
 >                where 
 >                    r = reverse (moveR p (reverse (tb !! c)))
 >                    (h, t) = splitAt c tb
->                    tb = transpose b
->
+>                    tb = getCols b
+
+moveR: the function looks for the first non-empty cell to insert the given 
+        player by recursion through the row given, and then outputs the 
+        processes row.
+
 > moveR :: Player -> Row -> Row
 > moveR p (x:xs) | x == B = (p:xs)
 >                | otherwise = x : moveR p xs
->
 
-The functions below checks if the given column numbers to move if valid
-- a valid digit indicating the column number that is within the defined 
-board size and still has at least one empty cell
+getInt: the function checks if the given column numbers to move is not empty,
+         containing only digits and valid according to the given board.  
 
 > getInt :: Board -> IO Int
 > getInt b = do ns <- getLine
@@ -172,17 +182,30 @@ board size and still has at least one empty cell
 >               else
 >                  do putStrLn "Invalid input. Try again:"
 >                     getInt b
->
+
+valid: this function checks if the given column number is valid - a valid
+        column from the given board that is within the defined board size 
+        and still has at least one empty cell.
+
 > valid :: Board -> Int -> Bool
 > valid b c = c < cols && b!!0!!c == B
 
-Tree: the tree data structure
+Tree: the tree data structure that stores the game boards in different stages.
 
 > data Tree x = Node x [Tree x] deriving Show
->
+
+gameTree: the function uses an auxiliary function, gameTree' to generate a game
+          tree of the pre-defined depth
+
 > gameTree :: Player -> Board -> Tree (Board, Player)
 > gameTree = gameTree' 0
->
+
+gameTree': the function is an auxiliary function of gameTree to generate a game
+           tree of the pre-defined depth, and it attaches a label
+to each node which indicates its attribute according to the minimax
+algorithm. Also, this cuts off "impossible" nodes 
+(full boards, following levels of finished games, etc)
+
 > gameTree' :: Int -> Player -> Board -> Tree (Board, Player)
 > gameTree' d p b 
 >   | hasWon p1 b = Node (b, p1) []
@@ -197,18 +220,29 @@ Tree: the tree data structure
 >                       ms = [c | c <- (filter (valid b) [0..cols - 1]) ]
 >                       p' = if p == p1 then p2 else p1
 
-The following functions decide the next and best step the computer to move. A 
-random selector is applied if multiple equally good steps exist
+
+nodeBoard: this function take a tree and outputs the board at the root node
 
 > nodeBoard :: Tree (Board, Player) -> Board
 > nodeBoard (Node (b, _) _) = b
->
+
+nodePlayer: this function take a tree and outputs the player at the root node
+
 > nodePlayer :: Tree (Board, Player) -> Player
 > nodePlayer (Node (_, p) _) = p
->
+
+nodeBoard: this function applies the helper function nextMoves' to generate all
+           equally best moves in the form of list of boards according to the 
+           given player. 
+
 > nextMoves :: Player -> Board -> [Board]
 > nextMoves p = nextMoves' . gameTree p
->
+
+nextMoves': this function outputs the list of equally-best next moves in a form
+            of [Board] by filtering out all the direct children of the current 
+            nodes whose player is X. If the result is null then looks for nodes
+            with player == B; otherwise return all the children. 
+
 > nextMoves' :: Tree (Board, Player) -> [Board]
 > nextMoves' (Node (b, p) ns) | not (null xMoves) = xMoves
 >                             | not (null bMoves) = bMoves
@@ -216,21 +250,35 @@ random selector is applied if multiple equally good steps exist
 >                                where 
 >                                    xMoves = getMoves X ns
 >                                    bMoves = getMoves B ns
->
+
+getMoves: this functions return all the nodes whose player is as given from the
+          input tree. 
+
 > getMoves :: Player -> [Tree (Board, Player)] -> [Board]
 > getMoves p ns =  [nodeBoard n | n <- ns, nodePlayer n == p]
 
 
-The main functions of the game - to interact with the users and 
-update the game status accordingly
+main: the main function of the game - to call the function play with initial
+      game board initB and the first player p1. 
 
 > main :: IO()
 > main = play initB p1
->
+
+play: the function that displays the board and updates the game status by 
+      calling the helper function play'.
+
 > play :: Board -> Player -> IO()
 > play b p = do showBoard b
 >               play' b p
->
+
+play': the helper function of play to check the status of the current game board
+       and displays a proper message if any of the players has won. If not then
+       it will check if the game board is full - meaning that the status is 
+       draw. Otherwise the function will check who is the player and seek for 
+       the next move from the next player (either the human player or the 
+       computer).  
+
+
 > play' :: Board -> Player -> IO()
 > play' b p | hasWon O b = putStrLn "Player O has won!"
 >           | hasWon X b = putStrLn "Player X has won!"
