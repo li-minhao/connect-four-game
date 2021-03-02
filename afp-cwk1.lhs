@@ -285,7 +285,6 @@ play': the helper function of play to check the status of the current game board
        the next move from the next player (either the human player or the 
        computer).  
 
-
 > play' :: Board -> Player -> IO()
 > play' b p | hasWon O b = putStrLn "Player O has won!"
 >           | hasWon X b = putStrLn "Player X has won!"
