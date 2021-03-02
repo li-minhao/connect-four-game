@@ -60,7 +60,7 @@ The following code displays a board on the screen:
 > showPlayer X = 'X'
 
 ----------------------------------------------------------------------
-The initial game board is defined as below
+initB: The initial game board which is entirely empty. 
 
 > initB :: Board
 > initB = replicate rows (replicate cols B)
@@ -70,14 +70,14 @@ p1: The first player to go is pre-defined
 > p1 :: Player
 > p1 = O
 
-p2: The second player to go can be deduced from who goes first
+p2: The second player to go can be deduced from who goes first.
 
 > p2 :: Player
 > p2 | p1 == X = O
 >    | otherwise = X
 
-turn: The function refers the next player
-from the specified current board layout
+turn: The function refers the next player from the specified current board 
+      layout.
 
 > turn :: Board -> Player
 > turn b = if firsts > seconds then p2 else p1
@@ -86,36 +86,44 @@ from the specified current board layout
 >               seconds = length (filter (== p2) ps)
 >               ps = concat b
 
-The following functions check if the given player has got a sequence indicated 
-to win in the row
+hasRow : To count if if the given player has got a sequence indicated to win in
+         the given row.
 
 > hasRow :: Player -> Row -> Bool
 > hasRow = count win
->
->
+
+count : Take a counter, w, the player to count and the row to count from as
+        parameters. The counter will decrement when the current cell contains
+        the indicated player. If not then the counter will be reseted to the
+        pre-defined variable win to start over the counting. The counting is 
+        acchieved by recursion. If the counter reaches 0 meaning that the 
+        sequence is found. In each recursion step the input row will be tailed.
+        If the row becomes empty before the counter reaches 0 then the sequence
+        is not found. 
+
 > count :: Int -> Player -> Row -> Bool
 > count 0 _ _ = True
 > count _ _ []= False
 > count w p (r:rs) | r == p = count (w - 1) p rs
 >                  | otherwise = count win p rs
 
-getRow: Gets all the rows of a board
+getRow: Gets all the rows of the given board.
 
 > getRows :: Board -> [Row]
 > getRows = id
 
-getCols: Gets all the columns of a board
+getCols: Gets all the columns of the given board.
 
 > getCols :: Board -> [Row]
 > getCols = transpose
 
-getDgnls: Gets all the diagnals of a board
+getDgnls: Gets all the diagnals of the given board.
 
 > getDgnls :: Board -> [Row]
 > getDgnls b = getDgnl b ++ getDgnl (reverse b)
 >           where getDgnl = tail .getDgnl' []
 
-getDgnl': Gets the diagnals from top-right to bottom-left of a board
+getDgnl': Gets the diagnals from top-right to bottom-left of a board.
 
 > getDgnl' :: Board -> [Row] -> [Row]
 > getDgnl' b rs
@@ -126,13 +134,14 @@ getDgnl': Gets the diagnals from top-right to bottom-left of a board
 >           ts = [t | h:t <- b]
 >           h = head rs
 >           t = tail rs
->
+
+
 > hasWon :: Player -> Board -> Bool
 > hasWon p b = any (hasRow p) (getRows b) 
 >           || any (hasRow p) (getCols b) 
 >           || any (hasRow p) (getDgnls b)
 
-The funciton full checks if the board given has no move blank cell
+full : The funciton full checks if the board given has no move blank cell.
 
 > full :: Board -> Bool
 > full b = not (any (elem B) b)
