@@ -175,31 +175,39 @@ Tree: the tree data structure
 
 > data Tree x = Node x [Tree x] deriving Show
 
-gameTree: The function uses an auxiliary function to generate
-a game tree of the pre-defined depth
+gameTree: The function uses auxiliary functions to
+generate a tree of boards firstly and a tree of 
+boards with a minimax label with each node
 
 > gameTree :: Player -> Board -> Tree (Board, Player)
-> gameTree = gameTree' 0
+> gameTree p = labelTree . boardTree 0 p
 
-gameTree: The function is an auxiliary function to generate
-a game tree of the pre-defined depth, and it attaches a label
-to each node which indicates its attribute according to the minimax
-algorithm. Also, this cuts off "impossible" nodes 
-(full boards, following levels of finished games, etc)
+boardTree: The function generates a tree of boards from
+the specified current board and current player to go, and 
+this tree has a maximum depth of the pre-defined value
+(it stops stretching when the board is full)
 
-> gameTree' :: Int -> Player -> Board -> Tree (Board, Player)
-> gameTree' d p b 
->   | hasWon p1 b = Node (b, p1) []
->   | hasWon p2 b = Node (b, p2) []
->   | d >= depth || full b = Node (b, B) []
->   | otherwise = Node (b, minimax) st
->                   where 
->                       minimax = (if turn b == O then minimum else maximum) ps
->                       ps = [p | Node (_, p) _ <- st]
->                       st = [gameTree' (d + 1) p' b' | b' <- bs]
->                       bs = [f b | f <- map (move p) ms]
->                       ms = [c | c <- (filter (valid b) [0..cols - 1]) ]
->                       p' = if p == p1 then p2 else p1
+> boardTree :: Int -> Player -> Board -> Tree Board
+> boardTree d p b 
+>   | d >= depth || full b = Node b []
+>   | otherwise = Node b [boardTree (d+1) p' b' | b' <- bs]
+>       where
+>           bs = [f b | f <- map (move p) ms]
+>           ms = [c | c <- (filter (valid b) [0..cols-1])]
+>           p' = if p == p1 then p2 else p1
+
+labelTree: The function puts down a label on each node of
+the specified tree of boards
+
+> labelTree :: Tree Board -> Tree (Board, Player)
+> labelTree (Node b []) = Node (b, p) []
+>       where p = if hasWon p1 b then p1 else
+>                 if hasWon p2 b then p2 else B
+> labelTree (Node b st) = Node (b, p) st'
+>       where
+>           st' = map labelTree st
+>           p = (if turn b == O then minimum else maximum) ps
+>           ps = [p | Node (_, p) _ <- st']
 
 The following functions decide the next and best step the computer to move. A 
 random selector is applied if multiple equally good steps exist
