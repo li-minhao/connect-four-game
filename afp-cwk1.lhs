@@ -133,10 +133,12 @@ The following functions add the given player to the board at the indicated
 column 
 
 > move :: Player -> Int -> Board -> Board
-> move p c b = transpose ((take c tb) ++ [r] ++ (drop (c+1) tb))
+> move p c b = transpose (h ++ [r] ++ tail t)
 >                where 
 >                    r = reverse (moveR p (reverse (tb !! c)))
+>                    (h, t) = splitAt c tb
 >                    tb = transpose b
+
 >
 > moveR :: Player -> Row -> Row
 > moveR p (x:xs) | x == B = (p:xs)
@@ -149,14 +151,14 @@ board size and still has at least one empty cell
 
 > getInt :: Board -> IO Int
 > getInt b = do ns <- getLine
->               if length ns > 0 && all isDigit ns && valid b (read ns) then 
+>               if not (null ns) && all isDigit ns && valid b (read ns) then 
 >                  return (read ns)
 >               else
 >                  do putStrLn "Invalid input. Try again:"
 >                     getInt b
 >
 > valid :: Board -> Int -> Bool
-> valid b c = c < cols && length b > 0 && length (b!!0) > c && b!!0!!c == B
+> valid b c = c < cols && rows > 0 && cols > c && b!!0!!c == B
 
 Game tree is defined as below with the pre-defined size 
 
