@@ -140,7 +140,6 @@ column
 >                    r = reverse (moveR p (reverse (tb !! c)))
 >                    (h, t) = splitAt c tb
 >                    tb = transpose b
-
 >
 > moveR :: Player -> Row -> Row
 > moveR p (x:xs) | x == B = (p:xs)
@@ -160,11 +159,7 @@ board size and still has at least one empty cell
 >                     getInt b
 >
 > valid :: Board -> Int -> Bool
-<<<<<<< HEAD
-> valid b c = c < cols && rows > 0 && cols > c && b!!0!!c == B
-=======
 > valid b c = c < cols && b!!0!!c == B
->>>>>>> ac022bb60cd1cf4a809ec3f2a52e8c57576e1a41
 
 Game tree is defined as below with the pre-defined size 
 
