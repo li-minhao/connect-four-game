@@ -113,20 +113,25 @@ getDgnls: Gets all the diagnals of a board
 
 > getDgnls :: Board -> [Row]
 > getDgnls b = getDgnl b ++ getDgnl (reverse b)
->           where getDgnl = tail .getDgnl' []
+>           where getDgnl = tail . getDgnl' []
 
 getDgnl': Gets the diagnals from top-right to bottom-left of a board
 
 > getDgnl' :: Board -> [Row] -> [Row]
 > getDgnl' b rs
->   | length rs == 0 = hs : (transpose ts)
+>   | null rs = hs : (transpose ts)
 >   | otherwise = hs : getDgnl' (h:ts) t
 >       where
 >           hs = [h | h:t <- b]
 >           ts = [t | h:t <- b]
 >           h = head rs
 >           t = tail rs
->
+
+hasWon: The function checks if the specified player 
+has won in the specified board. Specifically,
+a play wins if it has a certain number of consecutive
+cells in any of the rows, columns, or diagnals.
+
 > hasWon :: Player -> Board -> Bool
 > hasWon p b = any (hasRow p) (getRows b) 
 >           || any (hasRow p) (getCols b) 
@@ -150,7 +155,6 @@ column
 > moveR :: Player -> Row -> Row
 > moveR p (x:xs) | x == B = (p:xs)
 >                | otherwise = x : moveR p xs
->
 
 The functions below checks if the given column numbers to move if valid
 - a valid digit indicating the column number that is within the defined 
@@ -170,10 +174,19 @@ board size and still has at least one empty cell
 Tree: the tree data structure
 
 > data Tree x = Node x [Tree x] deriving Show
->
+
+gameTree: The function uses an auxiliary function to generate
+a game tree of the pre-defined depth
+
 > gameTree :: Player -> Board -> Tree (Board, Player)
 > gameTree = gameTree' 0
->
+
+gameTree: The function is an auxiliary function to generate
+a game tree of the pre-defined depth, and it attaches a label
+to each node which indicates its attribute according to the minimax
+algorithm. Also, this cuts off "impossible" nodes 
+(full boards, following levels of finished games, etc)
+
 > gameTree' :: Int -> Player -> Board -> Tree (Board, Player)
 > gameTree' d p b 
 >   | hasWon p1 b = Node (b, p1) []
