@@ -21,16 +21,16 @@ For flexibility, we define constants for the row and column size of the
 board, length of a winning sequence, and search depth for the game tree:
 
 > rows :: Int
-> rows = 6
+> rows = 4
 >
 > cols :: Int
-> cols = 7
+> cols = 4
 >
 > win :: Int
 > win = 4
 >
 > depth :: Int
-> depth = 6
+> depth = 2
 
 The board itself is represented as a list of rows, where each row is
 a list of player values, subject to the above row and column sizes:
