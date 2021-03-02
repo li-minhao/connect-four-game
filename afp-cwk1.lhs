@@ -15,7 +15,6 @@ We use some functions from the following libraries
 > import Data.Char
 > import System.IO
 > import Data.Char
-> import System.IO.Unsafe
 > import System.Random
 
 For flexibility, we define constants for the row and column size of the
@@ -198,26 +197,19 @@ random selector is applied if multiple equally good steps exist
 > nodePlayer :: Tree (Board, Player) -> Player
 > nodePlayer (Node (_, p) _) = p
 >
+> nextMoves :: Player -> Board -> [Board]
+> nextMoves p = nextMoves' . gameTree p
 >
-> nextMove :: Player -> Board -> Board
-> nextMove p = bestMove . gameTree p
->
-> bestMove :: Tree (Board, Player) -> Board
-> bestMove (Node (b, p) ns) | lenXMoves > 0 = xMoves !! randomNum lenXMoves
->                           | lenBMoves > 0 = bMoves !! randomNum lenBMoves
->                           | otherwise = nodeBoard (ns !! (randomNum lenNs))
+> nextMoves' :: Tree (Board, Player) -> [Board]
+> nextMoves' (Node (b, p) ns) | not (null xMoves) = xMoves
+>                             | not (null bMoves) = bMoves
+>                             | otherwise = [nodeBoard n | n <- ns]
 >                                where 
 >                                    xMoves = getMoves X ns
 >                                    bMoves = getMoves B ns
->                                    lenBMoves = length bMoves
->                                    lenXMoves = length xMoves
->                                    lenNs = length ns	
 >
 > getMoves :: Player -> [Tree (Board, Player)] -> [Board]
 > getMoves p ns =  [nodeBoard n | n <- ns, nodePlayer n == p]
->
-> randomNum :: Int -> Int
-> randomNum n = unsafePerformIO (randomRIO (0,n-1))
 
 
 The main functions of the game - to interact with the users and 
@@ -234,9 +226,11 @@ update the game status accordingly
 > play' b p | hasWon O b = putStrLn "Player O has won!"
 >           | hasWon X b = putStrLn "Player X has won!"
 >           | full b = putStrLn "Draw!"
->           | p == X = do putStrLn ("Player X is thinking...")           
->                         play (nextMove p b) O                       
+>           | p == X = do putStrLn ("Player X is thinking...")  
+>                         r <- randomRIO (0, length moves - 1)         
+>                         play (moves !! r) O                       
 >           | otherwise = do putStrLn ("\nPlayer O enter your move:")
 >                            c <- getInt b
 >                            play (move p c b) X
+>                              where moves = nextMoves p b
 
