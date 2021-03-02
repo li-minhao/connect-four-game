@@ -203,10 +203,12 @@ gameTree: the function uses auxiliary functions labelTree and boardTree to
 
 boardTree: the function generates a tree of boards from the specified current
            board and current player to go, and this tree has a maximum depth of
-           the pre-defined value (it stops stretching when the board is full).
+           the pre-defined value (it stops stretching when the board is full or
+           somebody has won).
 
 > boardTree :: Int -> Player -> Board -> Tree Board
 > boardTree d p b 
+>   | hasWon p1 b || hasWon p2 b  = Node b []
 >   | d >= depth || full b = Node b []
 >   | otherwise = Node b [boardTree (d+1) p' b' | b' <- bs]
 >       where
@@ -225,7 +227,7 @@ labelTree: the function puts down a label on each node of the specified tree of
 >       where
 >           st' = map labelTree st
 >           p = (if turn b == O then minimum else maximum) ps
->           ps = [p | Node (_, p) _ <- st']
+>           ps = map nodePlayer st'
 
 
 nodeBoard: this function take a tree and outputs the board at the root node
