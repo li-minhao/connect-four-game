@@ -95,7 +95,7 @@ to win in the row
 > count :: Int -> Player -> Row -> Bool
 > count 0 _ _ = True
 > count _ _ []= False
-> count w p (r:rs) | r == p = count (w-1) p rs
+> count w p (r:rs) | r == p = count (w - 1) p rs
 >                  | otherwise = count win p rs
 
 The following functions are intended to check if any player has won by looking 
@@ -108,7 +108,7 @@ into rows, cols and dignals from the board
 > getCols = transpose
 >
 > getDgnls :: Board -> [Row]
-> getDgnls b = getDgnl b ++ getDgnl (map reverse b)
+> getDgnls b = getDgnl b ++ getDgnl (reverse b)
 >           where getDgnl = tail .getDgnl' []
 > 
 > getDgnl' :: Board -> [Row] -> [Row]
@@ -122,7 +122,9 @@ into rows, cols and dignals from the board
 >           t = tail rs
 >
 > hasWon :: Player -> Board -> Bool
-> hasWon p b = any (hasRow p) (getRows b ++ getCols b ++ getDgnls b)
+> hasWon p b = any (hasRow p) (getRows b) 
+>           || any (hasRow p) (getCols b) 
+>           || any (hasRow p) (getDgnls b)
 
 The funciton full checks if the board given has no move blank cell
 
@@ -156,7 +158,7 @@ board size and still has at least one empty cell
 >                     getInt b
 >
 > valid :: Board -> Int -> Bool
-> valid b c = c < cols && length b > 0 && length (b!!0) > c && b!!0!!c == B
+> valid b c = c < cols && b!!0!!c == B
 
 Game tree is defined as below with the pre-defined size 
 
